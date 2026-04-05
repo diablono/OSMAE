@@ -1,0 +1,66 @@
+name: Build AIKO-OS ISO
+on: [push]
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Install dependencies & Build AppImage
+        run: |
+          npm install
+          npm run build:linux
+          
+      - name: Install ISO Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools xorriso curl p7zip-full
+          
+      - name: Prepare AI Assets (Ollama + Gemma2)
+        run: |
+          mkdir -p ai_assets
+          curl -L https://ollama.com/download/ollama-linux-amd64 -o ai_assets/ollama
+          chmod +x ai_assets/ollama
+          
+      - name: Download Base Ubuntu ISO
+        run: |
+          # Dùng bản Ubuntu Mini để ISO cuối cùng nhẹ nhất (khoảng 3GB)
+          curl -L -o ubuntu-base.iso "https://releases.ubuntu.com/24.04/ubuntu-24.04-desktop-amd64.iso"
+          
+      - name: Remix ISO (Bake-in AIKO-OS & AI Local)
+        run: |
+          mkdir -p iso_extract
+          7z x ubuntu-base.iso -oiso_extract
+          
+          # Nhúng mã nguồn và AI vào phân vùng vĩnh viễn của đĩa
+          mkdir -p iso_extract/opt/aiko-os
+          # Copy source code
+          rsync -av --exclude '.git' --exclude 'node_modules' . iso_extract/opt/aiko-os/
+          # Copy AppImage
+          cp dist/*.AppImage iso_extract/opt/aiko-os/aiko-os.AppImage
+          # Copy AI Binary
+          cp ai_assets/ollama iso_extract/opt/aiko-os/ollama
+          
+      - name: Master Final ISO
+        run: |
+          xorriso -as mkisofs \
+            -r -V "AIKO_OS_PRO" \
+            -o AIKO_OS_v1_Live.iso \
+            -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat \
+            -no-emul-boot -boot-load-size 4 -boot-info-table \
+            -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot \
+            -isohybrid-gpt-basdat \
+            iso_extract
+            
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIKO-OS-ISO
+          path: AIKO_OS_v1_Live.iso
+          retention-days: 7

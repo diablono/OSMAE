@@ -1,0 +1,8 @@
+node_modules/
+dist/
+iso_build_tmp/
+iso_remix_work/
+*.iso
+*.AppImage
+.DS_Store
+.env

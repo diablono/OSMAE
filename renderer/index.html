@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://api.anthropic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src https://api.anthropic.com; img-src 'self' data:;"/>
+<title>AIKO-OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<!-- Title Bar -->
+<div id="titlebar">
+  <div class="tb-left">
+    <span class="tb-logo">AIKO<span class="tb-ver">OS</span></span>
+    <div class="tb-status">
+      <span class="dot dot-green"></span>
+      <span class="dot dot-blue"></span>
+      <span class="dot dot-purple"></span>
+    </div>
+    <span class="tb-clock" id="tb-clock">00:00:00</span>
+  </div>
+  <div class="tb-drag"></div>
+  <div class="tb-right">
+    <span class="tb-sysinfo" id="tb-mem">MEM --</span>
+    <button class="wbtn" id="btn-min" title="Minimize">─</button>
+    <button class="wbtn" id="btn-max" title="Maximize">□</button>
+    <button class="wbtn wbtn-close" id="btn-close" title="Close">✕</button>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div id="desktop">
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="sidebar-robot" id="sidebar-robot">
+      <svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg" class="robot-mini">
+        <!-- Antenna -->
+        <line x1="40" y1="6" x2="40" y2="0" stroke="#00c8ff" stroke-width="1.5"/>
+        <circle cx="40" cy="-2" r="3" fill="#00c8ff" class="aiko-eye"/>
+        <!-- Head -->
+        <rect x="16" y="6" width="48" height="40" rx="8" fill="#0a1a30" stroke="#00c8ff" stroke-width="1"/>
+        <!-- Eyes -->
+        <rect x="22" y="14" width="14" height="9" rx="3" fill="#001828" stroke="#00c8ff" stroke-width="0.8"/>
+        <rect x="44" y="14" width="14" height="9" rx="3" fill="#001828" stroke="#00c8ff" stroke-width="0.8"/>
+        <ellipse cx="29" cy="18" rx="4" ry="3" fill="#00c8ff" class="aiko-eye"/>
+        <ellipse cx="51" cy="18" rx="4" ry="3" fill="#00c8ff" class="aiko-eye2"/>
+        <!-- Mouth -->
+        <rect x="28" y="32" width="24" height="8" rx="3" fill="#001020" stroke="rgba(0,200,255,0.4)" stroke-width="0.8"/>
+        <line x1="32" y1="36" x2="48" y2="36" stroke="#00c8ff" stroke-width="1" stroke-linecap="round"/>
+        <!-- Ears -->
+        <rect x="8" y="14" width="9" height="18" rx="3" fill="#091525" stroke="rgba(0,200,255,0.5)" stroke-width="0.8"/>
+        <rect x="63" y="14" width="9" height="18" rx="3" fill="#091525" stroke="rgba(0,200,255,0.5)" stroke-width="0.8"/>
+        <!-- Neck -->
+        <rect x="32" y="46" width="16" height="7" rx="3" fill="#091525" stroke="rgba(0,200,255,0.4)" stroke-width="0.8"/>
+        <!-- Body -->
+        <rect x="12" y="53" width="56" height="44" rx="7" fill="#0a1a30" stroke="#00c8ff" stroke-width="1"/>
+        <!-- Chest lights -->
+        <circle cx="30" cy="75" r="3" fill="#00ff88" class="aiko-eye"/>
+        <circle cx="40" cy="75" r="3" fill="#00c8ff" class="aiko-eye"/>
+        <circle cx="50" cy="75" r="3" fill="#cc88ff" class="aiko-eye2"/>
+        <!-- Arms -->
+        <rect x="2" y="56" width="11" height="26" rx="4" fill="#091525" stroke="rgba(0,200,255,0.3)" stroke-width="0.8"/>
+        <rect x="67" y="56" width="11" height="26" rx="4" fill="#091525" stroke="rgba(0,200,255,0.3)" stroke-width="0.8"/>
+        <!-- Legs -->
+        <rect x="19" y="97" width="16" height="18" rx="4" fill="#091525" stroke="rgba(0,200,255,0.3)" stroke-width="0.8"/>
+        <rect x="45" y="97" width="16" height="18" rx="4" fill="#091525" stroke="rgba(0,200,255,0.3)" stroke-width="0.8"/>
+      </svg>
+      <div class="robot-name-mini">AIKO-7</div>
+      <div class="robot-status-mini" id="robot-status">Online</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <button class="nav-btn active" data-app="home">
+        <span class="nav-icon">⌂</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-btn" data-app="chat">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">Chat AI</span>
+      </button>
+      <button class="nav-btn" data-app="files">
+        <span class="nav-icon">📁</span>
+        <span class="nav-label">Files</span>
+      </button>
+      <button class="nav-btn" data-app="terminal">
+        <span class="nav-icon">⌨</span>
+        <span class="nav-label">Terminal</span>
+      </button>
+      <button class="nav-btn" data-app="system">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">System</span>
+      </button>
+      <button class="nav-btn" data-app="settings">
+        <span class="nav-icon">🔧</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Content Area -->
+  <main id="content">
+    <!-- HOME -->
+    <section class="app-panel active" id="app-home">
+      <div class="home-grid">
+        <div class="home-welcome">
+          <h1 class="welcome-title">Xin chào, <span id="welcome-user">User</span></h1>
+          <p class="welcome-sub" id="welcome-date">Đang tải...</p>
+          <div class="quick-actions">
+            <button class="qa-btn" onclick="switchApp('chat')">💬 Chat với AIKO</button>
+            <button class="qa-btn" onclick="switchApp('files')">📁 Mở Files</button>
+            <button class="qa-btn" onclick="switchApp('terminal')">⌨ Terminal</button>
+            <button class="qa-btn special" onclick="simulateMultiAgent()">⚡ Test AIOS Kernel (Multi-Agent)</button>
+          </div>
+        </div>
+        <div class="home-stats" id="home-stats">
+          <div class="stat-card">
+            <div class="stat-label">CPU</div>
+            <div class="stat-bar-wrap"><div class="stat-bar-fill" id="stat-cpu" style="width:0%"></div></div>
+            <div class="stat-val" id="stat-cpu-val">--%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Memory</div>
+            <div class="stat-bar-wrap"><div class="stat-bar-fill mem" id="stat-mem" style="width:0%"></div></div>
+            <div class="stat-val" id="stat-mem-val">--%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">AIOS Kernel</div>
+            <div class="stat-status-row">
+              <span class="dot dot-green" id="stat-kernel-dot"></span>
+              <span class="stat-status-text" id="stat-kernel-text">Active (FIFO)</span>
+            </div>
+            <div class="stat-detail" id="stat-kernel-detail">Scheduler: Round Robin</div>
+          </div>
+          <div class="stat-card" id="sys-info-card">
+            <div class="stat-label">System</div>
+            <div class="stat-detail" id="sys-detail">Đang tải...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section class="app-panel" id="app-chat">
+      <div class="chat-layout">
+        <div class="chat-header">
+          <span class="panel-title">Chat với AIKO-7</span>
+          <button class="icon-btn" id="clear-chat" title="Xóa lịch sử">🗑</button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg ai">
+            <div class="msg-avatar">AI</div>
+            <div class="msg-content">
+              <div class="msg-name">AIKO-7</div>
+              <div class="msg-text">Xin chào! Tôi là AIKO-7, trợ lý AI của hệ thống AIKO-OS. Tôi có thể giúp bạn quản lý file, chạy lệnh, viết code, và trả lời mọi câu hỏi. Hãy cho tôi biết bạn cần gì! ⚡</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-tools">
+            <button class="tool-btn" onclick="insertPrompt('Liệt kê các file trong thư mục home')">📁 Files</button>
+            <button class="tool-btn" onclick="insertPrompt('Chạy lệnh: ')">⌨ Terminal</button>
+            <button class="tool-btn" onclick="insertPrompt('Viết code Python để ')">💻 Code</button>
+            <button class="tool-btn" onclick="insertPrompt('Giải thích cho tôi về ')">❓ Explain</button>
+          </div>
+          <div class="chat-input-row">
+            <textarea id="chat-input" placeholder="Nhập tin nhắn cho AIKO-7... (Enter để gửi, Shift+Enter xuống dòng)" rows="1"></textarea>
+            <button class="send-btn" id="send-btn">↑</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILES -->
+    <section class="app-panel" id="app-files">
+      <div class="files-layout">
+        <div class="files-toolbar">
+          <span class="panel-title">File Manager</span>
+          <div class="path-bar" id="path-bar">/home</div>
+          <div class="files-actions">
+            <button class="icon-btn" id="btn-up" title="Lên thư mục trên">↑</button>
+            <button class="icon-btn" id="btn-home-dir" title="Home">⌂</button>
+            <button class="icon-btn" id="btn-refresh" title="Refresh">↺</button>
+            <button class="icon-btn" id="btn-newfolder" title="Tạo thư mục mới">+</button>
+          </div>
+        </div>
+        <div class="files-list" id="files-list">
+          <div class="loading-msg">Đang tải...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TERMINAL -->
+    <section class="app-panel" id="app-terminal">
+      <div class="terminal-layout">
+        <div class="terminal-header">
+          <span class="panel-title">Terminal</span>
+          <button class="icon-btn" id="btn-clear-term" title="Clear">✕</button>
+        </div>
+        <div class="terminal-output" id="terminal-output">
+          <div class="term-line term-system">AIKO-OS Terminal v1.0 — Gõ 'help' để xem lệnh</div>
+        </div>
+        <div class="terminal-input-row">
+          <span class="term-prompt" id="term-prompt">aiko@os:~$</span>
+          <input id="terminal-input" type="text" class="term-input" placeholder="Nhập lệnh..." autocomplete="off" spellcheck="false"/>
+        </div>
+      </div>
+    </section>
+
+    <!-- SYSTEM -->
+    <section class="app-panel" id="app-system">
+      <div class="system-layout">
+        <div class="panel-title" style="margin-bottom:16px">System Monitor</div>
+        <div class="system-grid" id="system-grid">
+          <div class="sys-card" id="sc-cpu">
+            <div class="sc-title">CPU</div>
+            <div class="sc-value" id="sc-cpu-val">--%</div>
+            <div class="sc-bar"><div class="sc-fill cpu-fill" id="sc-cpu-bar"></div></div>
+            <div class="sc-detail" id="sc-cpu-detail">--</div>
+          </div>
+          <div class="sys-card" id="sc-mem">
+            <div class="sc-title">Memory</div>
+            <div class="sc-value" id="sc-mem-val">--GB / --GB</div>
+            <div class="sc-bar"><div class="sc-fill mem-fill" id="sc-mem-bar"></div></div>
+            <div class="sc-detail" id="sc-mem-detail">-- used</div>
+          </div>
+          <div class="sys-card">
+            <div class="sc-title">System Info</div>
+            <div class="sc-info" id="sc-sys-info">Đang tải...</div>
+          </div>
+          <div class="sys-card">
+            <div class="sc-title">Uptime</div>
+            <div class="sc-value" id="sc-uptime">--</div>
+            <div class="sc-detail">Thời gian hoạt động</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="app-panel" id="app-settings">
+      <div class="settings-layout">
+        <div class="panel-title" style="margin-bottom:20px">Settings</div>
+        <div class="settings-group">
+          <div class="settings-label">Claude API Key</div>
+          <div class="settings-row">
+            <input type="password" id="cfg-apikey" class="settings-input" placeholder="sk-ant-..."/>
+            <button class="settings-btn" id="btn-save-key">Lưu</button>
+          </div>
+          <div class="settings-hint">Lấy API key tại console.anthropic.com</div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-label">Tên Robot</div>
+          <input type="text" id="cfg-robotname" class="settings-input" placeholder="AIKO-7" style="max-width:200px"/>
+        </div>
+        <div class="settings-group">
+          <div class="settings-label">Model AI</div>
+          <select id="cfg-model" class="settings-input" style="max-width:300px">
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (Khuyên dùng)</option>
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Nhanh hơn)</option>
+            <option value="claude-opus-4-20250514">Claude Opus 4 (Mạnh nhất)</option>
+          </select>
+        </div>
+        <button class="settings-btn primary" id="btn-save-settings" style="margin-top:24px">💾 Lưu tất cả</button>
+        <div class="settings-hint" id="settings-status"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="aiko.js"></script>
+</body>
+</html>

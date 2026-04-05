@@ -1,0 +1,41 @@
+{
+  "name": "aiko-os",
+  "version": "1.0.0",
+  "description": "AIKO-OS - AI Operating System with Anime Robot Assistant",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:linux": "electron-builder --linux",
+    "install-deps": "npm install"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "chokidar": "^3.6.0",
+    "electron-store": "^8.2.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "build": {
+    "appId": "com.aiko.os",
+    "productName": "AIKO-OS",
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Utility",
+      "icon": "images/IconMaeAI.png"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "node_modules/**/*"
+    ]
+  },
+  "author": "AIKO Dev",
+  "license": "MIT"
+}
