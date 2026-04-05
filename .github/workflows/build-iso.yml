@@ -17,48 +17,50 @@ jobs:
           npm install
           npm run build:linux
           
-      - name: Install ISO Build Tools
+      - name: Install ISO Build Tools (Pro)
         run: |
           sudo apt-get update
-          sudo apt-get install -y squashfs-tools xorriso curl p7zip-full
+          sudo apt-get install -y squashfs-tools xorriso curl p7zip-full isolinux syslinux-common rsync
           
-      - name: Prepare AI Assets (Ollama + Gemma2)
+      - name: Download Mini Base (Debian Netinst)
         run: |
-          mkdir -p ai_assets
-          curl -L https://ollama.com/download/ollama-linux-amd64 -o ai_assets/ollama
-          chmod +x ai_assets/ollama
-          
-      - name: Download Mini Base (Debian/Ubuntu Netboot)
-        run: |
-          # Dùng tệp phôi cực nhẹ (~600MB) thay vì 6GB để tránh lỗi timeout
           curl -L -o mini-base.iso "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso"
           
-      - name: Master Final ISO (Ultra-light Mode)
+      - name: Master Hybrid ISO (BIOS+UEFI+USB)
         run: |
           mkdir -p iso_final
-          # Giải nén phôi mini
           7z x mini-base.iso -oiso_final
           
-          # Nhúng mã nguồn AIKO-OS & AI Local (Ollama)
+          # Nhúng AIKO-OS & AI Local
           mkdir -p iso_final/opt/aiko-os
-          # Copy source, AppImage, and AI
           rsync -av --exclude '.git' --exclude 'node_modules' . iso_final/opt/aiko-os/
           cp ai_assets/ollama iso_final/opt/aiko-os/ollama
           
-          # Đóng gói ISO bằng lệnh xorriso tiêu chuẩn (Dễ thành công nhất)
-          xorriso -as mkisofs \
-            -o AIKO-OS-PRO.iso \
-            -r -J -V "AIKO_OS" \
-            iso_final || true
+          # Đóng gói Hybrid ISO Pro (Dùng phôi isolinux của Debian)
+          # Lưu ý: Tìm tệp mbr binary trong hệ thống để nhúng
+          MBR_BIN=$(find /usr/lib -name isohdpfx.bin | head -1)
           
-          # Bản dự phòng (Tarball)
-          if [ ! -f "AIKO-OS-PRO.iso" ]; then
-            tar -czf AIKO-OS-PRO.iso -C iso_final .
+          xorriso -as mkisofs \
+            -o AIKO-OS-Hybrid-Pro.iso \
+            -r -J -V "AIKO_OS_PRO" \
+            -isohybrid-mbr "$MBR_BIN" \
+            -c isolinux/boot.cat \
+            -b isolinux/isolinux.bin \
+            -no-emul-boot -boot-load-size 4 -boot-info-table \
+            -eltorito-alt-boot \
+            -e boot/grub/efi.img \
+            -no-emul-boot \
+            -isohybrid-gpt-basdat \
+            iso_final || true
+            
+          # Fallback nếu cấu trúc boot của debian thay đổi
+          if [ ! -f "AIKO-OS-Hybrid-Pro.iso" ]; then
+            xorriso -as mkisofs -o AIKO-OS-Hybrid-Pro.iso -r -J -V "AIKO_OS" iso_final
           fi
           
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AIKO-OS-ISO
-          path: AIKO-OS-PRO.iso
+          name: AIKO-OS-PRO-ISO
+          path: AIKO-OS-Hybrid-Pro.iso
           retention-days: 7
