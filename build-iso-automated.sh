@@ -14,8 +14,8 @@ err()  { echo -e "${RED}[ERR]${NC} $1"; exit 1; }
 log "Chuẩn bị công cụ nén/giải nén (7z, xorriso, rsync)..."
 sudo apt update -qq && sudo apt install -y p7zip-full xorriso rsync curl squashfs-tools
 
-# 2. Xử lý tệp ISO gốc
-ISO_BASE=$(find . -maxdepth 1 -name "ubuntu-24.04*.iso" | head -1)
+# 2. Xử lý tệp ISO gốc (Thông minh: Tìm mọi tệp .iso bất kỳ)
+ISO_BASE=$(find . -maxdepth 1 -name "*.iso" | grep -v "AIKO-OS" | head -1)
 if [ -z "$ISO_BASE" ]; then
     err "Không tìm thấy tệp Ubuntu ISO gốc! Hãy tải tệp .iso vào thư mục này trước."
 fi
@@ -46,25 +46,28 @@ log "Bước 4: Thiết lập chế độ tự động chạy khi Boot USB..."
 # Tạo script boot-time để nhúng AIKO
 # (Đây là kỹ thuật remix cơ bản cho phiên bản Live)
 
-# 7. Đóng gói đĩa ISO mới bằng xorriso
-log "Bước 5: Tái tạo đĩa ISO khởi động thực thụ... (Tiến trình nén 6GB)"
-GEN_ISO="AIKO-OS-Live-Pro-v1.iso"
+# 7. Đóng gói đĩa ISO mới bằng xorriso (Pro Hybrid GRUB Mode)
+log "Bước 5: Tái tạo đĩa ISO khởi động thực thụ..."
+GEN_ISO="AIKO-OS-Pro-v1.iso"
 
-# Lệnh xorriso chính xác để tạo bootable image cho Ubuntu EFI/Legacy
-xorriso -as mkisofs \
-  -r -V "AIKO_OS_LIVE" \
-  -o "$GEN_ISO" \
-  -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat \
-  -no-emul-boot -boot-load-size 4 -boot-info-table \
-  -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot \
-  -isohybrid-gpt-basdat \
-  "$BUILD_DIR/extract" > /dev/null 2>&1 || true
+# Dò tìm cấu trúc GRUB Boot (Dành cho Ubuntu 24.04 Server hiện đại)
+ELTORITO=$(find "$BUILD_DIR/extract" -name "eltorito.img" | head -1 | sed "s|$BUILD_DIR/extract/||")
+EFI_IMG=$(find "$BUILD_DIR/extract" -name "efi.img" | head -1 | sed "s|$BUILD_DIR/extract/||")
+GRUB_CORE=$(find "$BUILD_DIR/extract" -name "core.img" | head -1 | sed "s|$BUILD_DIR/extract/||")
 
-# Tạo file giả lập dung lượng khổng lồ nếu xorriso lỗi quyền (Fallback)
-if [ ! -f "$GEN_ISO" ] || [ $(stat -c%s "$GEN_ISO") -lt 1000 ]; then
-    log "Đang nén theo cơ chế thủ công..."
-    # Nếu xorriso thất bại do cấu trúc boot, ta tạo App-Bundle trong ISO
-    tar -czf "$GEN_ISO" -C "$BUILD_DIR/extract" .
+if [ -n "$ELTORITO" ]; then
+    log "Phát hiện cấu trúc GRUB Boot: $ELTORITO"
+    xorriso -as mkisofs \
+      -r -V "AIKO_OS_PRO" \
+      -o "$GEN_ISO" \
+      -J -l -b "$ELTORITO" -c "boot.catalog" \
+      -no-emul-boot -boot-load-size 4 -boot-info-table \
+      ${EFI_IMG:+-eltorito-alt-boot -e "$EFI_IMG" -no-emul-boot} \
+      -isohybrid-gpt-basdat \
+      "$BUILD_DIR/extract" > /dev/null 2>&1
+else
+    log "Cảnh báo: Không tìm thấy GRUB, thử dùng phương pháp Legacy..."
+    xorriso -as mkisofs -r -J -V "AIKO_OS" -o "$GEN_ISO" "$BUILD_DIR/extract" > /dev/null 2>&1
 fi
 
 ok "XONG! ĐÃ CÓ FILE ĐĨA BOOT: $GEN_ISO"
